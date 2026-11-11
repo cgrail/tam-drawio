@@ -913,18 +913,27 @@ Draw.loadPlugin(function (ui) {
     ui.sidebar.setCurrentSearchEntryLibrary('tam', 'tamBlock');
     ui.sidebar.addPalette('tamBlock', 'TAM / Block', true, function (content) {
         // useSignDirection=north: the R sign points from source to target, whichever way the channel is drawn.
-        const autoEdge = new mxCell('', new mxGeometry(0, 0, 160, 160), 'shape=useedge;vertical=auto;edgeStyle=orthogonalEdgeStyle;endArrow=none;useSignPosition=left;useSignDirection=north;');
-        autoEdge.geometry.setTerminalPoint(new mxPoint(0, 160), true);
-        autoEdge.geometry.setTerminalPoint(new mxPoint(160, 0), false);
-        autoEdge.geometry.relative = true;
-        autoEdge.edge = true;
-        const smartChannel = ui.sidebar.createEdgeTemplateFromCells([autoEdge], 160, 160, 'Auto-Orient Channel');
-        // Hover preview only: add the "AUTO" label so it matches the thumbnail. The label is not dropped into the diagram.
-        const autoLabel = new mxCell('AUTO', new mxGeometry(0, 0, 110, 44), 'text;html=1;align=left;verticalAlign=top;fontStyle=1;fontSize=32;strokeColor=none;fillColor=none;');
+        const autoEdge = (x1, y1, x2, y2) => {
+            const edge = new mxCell('', new mxGeometry(0, 0, 160, 160), 'shape=useedge;vertical=auto;edgeStyle=orthogonalEdgeStyle;endArrow=none;useSignPosition=left;useSignDirection=north;');
+            edge.geometry.setTerminalPoint(new mxPoint(x1, y1), true);
+            edge.geometry.setTerminalPoint(new mxPoint(x2, y2), false);
+            edge.geometry.relative = true;
+            edge.edge = true;
+            return edge;
+        };
+        const smartChannel = ui.sidebar.createEdgeTemplateFromCells([autoEdge(0, 160, 160, 0)], 160, 160, 'Auto-Orient Channel');
+        // Hover preview only: "AUTO" label plus the three forms the channel takes (horizontal, vertical, L).
+        // Only the single edge above is dropped into the diagram.
+        const autoLabel = new mxCell('AUTO', new mxGeometry(8, 0, 110, 44), 'text;html=1;align=left;verticalAlign=top;fontStyle=1;fontSize=30;strokeColor=none;fillColor=none;');
         autoLabel.vertex = true;
+        const autoPreview = [autoLabel, autoEdge(104, 65, 208, 65), autoEdge(36, 200, 36, 62), autoEdge(76, 191, 197, 104)];
         const showTooltip = ui.sidebar.showTooltip;
         ui.sidebar.showTooltip = function (elt, cells) {
-            if (elt === smartChannel && Array.isArray(cells)) arguments[1] = [autoEdge, autoLabel];
+            if (elt === smartChannel && Array.isArray(cells)) {
+                arguments[1] = autoPreview;
+                arguments[2] = 216;
+                arguments[3] = 210;
+            }
             return showTooltip.apply(this, arguments);
         };
         // Hand-drawn thumbnail: L-channel with R direction sign + "AUTO" label,
